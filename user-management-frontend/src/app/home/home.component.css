@@ -1,0 +1,14 @@
+.buttons-container {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  max-width: 300px;
+}
+
+.user-row {
+  cursor: pointer;
+}
+
+.row-is-clicked {
+  font-weight: bold;
+}
