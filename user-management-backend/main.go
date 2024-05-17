@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/labstack/echo/v4/middleware"
+	"net/http"
 	"user-management-backend/database"
 	"user-management-backend/routes"
 
@@ -20,6 +21,10 @@ func main() {
 	// Middleware
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"http://localhost:4200"}, //angular service address
+		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
+	}))
 
 	// Connect to the database
 	database.ConnectDB()
