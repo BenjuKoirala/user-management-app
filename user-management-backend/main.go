@@ -1,8 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/labstack/echo/v4/middleware"
+	"log"
 	"net/http"
+	"os"
 	"user-management-backend/database"
 	"user-management-backend/routes"
 
@@ -18,11 +21,18 @@ import (
 func main() {
 	e := echo.New()
 
+	config, err := loadConfig("config/db_config.json")
+	if err != nil {
+		log.Fatal("Error loading configuration:", err)
+	}
+
+	frontendUrl := config.FrontEndUrl
+
 	// Middleware
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"http://localhost:4200"}, //angular service address
+		AllowOrigins: []string{frontendUrl}, //angular service address
 		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
 	}))
 
@@ -37,4 +47,26 @@ func main() {
 
 	// Start server
 	e.Logger.Fatal(e.Start(":8080"))
+}
+
+type Config struct {
+	FrontEndUrl string `json:"frontend_url"`
+}
+
+// LoadConfig reads the configuration from a JSON file
+func loadConfig(filePath string) (*Config, error) {
+	configFile, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer configFile.Close()
+
+	config := &Config{}
+	jsonParser := json.NewDecoder(configFile)
+	err = jsonParser.Decode(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return config, nil
 }
