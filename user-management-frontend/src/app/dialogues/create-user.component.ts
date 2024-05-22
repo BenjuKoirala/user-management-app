@@ -3,7 +3,7 @@ import {MatButtonModule} from '@angular/material/button';
 import {FormsModule} from '@angular/forms';
 import {MatInputModule} from '@angular/material/input';
 import {MatFormFieldModule} from '@angular/material/form-field';
-import { UserDetails } from '../home/home.component';
+import {UserDetails} from '../home/home.component';
 import {
   MatDialog,
   MAT_DIALOG_DATA,
@@ -26,7 +26,7 @@ export class CreateUserDialog {
   dialogTitle: string = "Create";
   constructor(
     public dialogRef: MatDialogRef<CreateUserDialog>,
-    @Inject(MAT_DIALOG_DATA) public data: UserDetails,
+    @Inject(MAT_DIALOG_DATA) public data: {name: string, email: string},
   ) {}
 
   onNoClick(): void {

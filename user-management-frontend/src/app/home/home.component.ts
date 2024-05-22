@@ -1,9 +1,12 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import {MatTableModule, MatTableDataSource } from '@angular/material/table';
 import {MatPaginator, MatPaginatorModule} from '@angular/material/paginator';
 import {MatButtonModule} from '@angular/material/button';
 import { CreateUserDialog } from '../dialogues/create-user.component';
 import { MatDialog } from '@angular/material/dialog';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
 
 export interface UserDetails {
   id: number,
@@ -11,30 +14,55 @@ export interface UserDetails {
   email: string;
 }
 
-const ELEMENT_DATA: UserDetails[] = [
-  {id: 1, name: 'Benju', email: 'benju@Koirala.np'},
-  {id: 2, name: 'Ashok', email: 'ashok@Adhikari.np'},
-  {id: 3, name: 'Aiwen', email: 'aiwen@Adhikari.np'},
-  {id: 4, name: 'Arlin', email: 'arlin@Adhikari.np'},
-];
-
 @Component({
   selector: 'app-home',
   standalone: true,
   imports: [MatTableModule, MatButtonModule, MatPaginatorModule],
   providers: [],
   animations: [],
-  templateUrl: 'home-component.html',
+  templateUrl: './home-component.html',
   styleUrl: './home.component.css'
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit {
+  private baseUrl = 'http://localhost:8080/api/users'; // Backend URL
   displayedColumns: string[] = ['id', 'name', 'email'];
-  users = ELEMENT_DATA;
-  dataSource = new MatTableDataSource<UserDetails>(this.users);
-  clickedRow: undefined | UserDetails = undefined;
+  dataSource = new MatTableDataSource<UserDetails>([]);
+  clickedRow: UserDetails | undefined = undefined;
   createdUser: UserDetails | undefined = undefined;
   
-  constructor(public dialog: MatDialog) {}
+  constructor(private http: HttpClient, public dialog: MatDialog) { }
+
+  ngOnInit() {
+    this.loadUsers();
+  }
+
+  loadUsers() {
+    this.getUsers().subscribe(users => {
+      console.log('Fetched users:', users);
+      this.dataSource.data = users;
+    });
+  }
+
+  getUsers(): Observable<UserDetails[]> {
+    // here
+    return this.http.get<UserDetails[]>(this.baseUrl);
+  }
+
+  getUser(id: number): Observable<UserDetails> {
+    return this.http.get<UserDetails>(`${this.baseUrl}/${id}`);
+  }
+
+  createUser(user :UserDetails): Observable<UserDetails> {
+    return this.http.post<UserDetails>(this.baseUrl, user)
+  }
+
+  updateUser(user: UserDetails): Observable<UserDetails> {
+    return this.http.put<UserDetails>(`${this.baseUrl}/${user.id}`, user);
+  }
+
+  deleteUser(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
 
   //@ViewChild(MatPaginator) paginator: MatPaginator;
 
@@ -51,42 +79,50 @@ export class HomeComponent {
     return this.clickedRow == row;
   }
 
-  updateUser() {
-    console.log(`Updating user ${this.clickedRow}`)
-    const dialogRef = this.dialog.open(CreateUserDialog, {
-      data: {name: "", email: ""}
-    });
+  onUpdateUser() {
+    if (this.clickedRow) {
+      const userId = this.clickedRow.id;
+      const dialogRef = this.dialog.open(CreateUserDialog, {
+        data: { name: this.clickedRow.name, email: this.clickedRow.email }
+      });
 
-    dialogRef.afterClosed().subscribe(result => {
-      this.createdUser = {id: 0, name: result.name, email: result.email};
-      console.log(this.createdUser)
-      // connect to backend
-    });
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          const updatedUser: UserDetails = { id: userId, name: result.name, email: result.email };
+          this.updateUser(updatedUser).subscribe(() => {
+            console.log(`Updated user ${updatedUser.id}`);
+            this.loadUsers();
+          });
+        }
+      });
+    }
   }
 
-  deleteUser() {
+  onDeleteUser() {
     console.log(`Deleting user ${this.clickedRow}`)
-    // connect to backend and delete
-    // after success remove from table UI
-    // remove from this.users
-    // this.dataSource = new MatTableDataSource(this.users);
+    if (this.clickedRow) {
+      this.deleteUser(this.clickedRow.id).subscribe(() => {
+        console.log(`Deleted user ${this.clickedRow}`);
+        this.loadUsers();
+      });
+    }
   }
 
-  createUser() {
+  onCreateUser() {
     console.log("Creating new user");
     
     const dialogRef = this.dialog.open(CreateUserDialog, {
-      data: {name: "", email: ""}
+      data: { name: '', email: '' }
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      this.createdUser = {id: 0, name: result.name, email: result.email};
-
-      // connect to backend and if success append in the table
-
-      this.users.push(this.createdUser);
-      this.dataSource = new MatTableDataSource(this.users);
-      console.log(this.createdUser)
+      if (result) {
+        const newUser: UserDetails = { id: 0, name: result.name, email: result.email };
+        this.createUser(newUser).subscribe(createdUser => {
+          console.log("Created new user", createdUser);
+          this.loadUsers();
+        });
+      }
     });
   }
 

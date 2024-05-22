@@ -5,10 +5,38 @@
   max-width: 300px;
 }
 
+.colorful-table {
+  width: 100%;
+}
+
+.mat-header-cell {
+  background-color: #3f51b5;
+  color: white;
+  font-weight: bold;
+}
+
+.mat-cell {
+  color: #3f51b5;
+}
+
+.mat-row:nth-child(even) .mat-cell {
+  background-color: #f5f5f5;
+}
+
+.mat-row:nth-child(odd) .mat-cell {
+  background-color: #e8eaf6;
+}
+
+.mat-row:hover .mat-cell {
+  background-color: #c5cae9;
+}
+
 .user-row {
   cursor: pointer;
 }
 
 .row-is-clicked {
   font-weight: bold;
+  background-color: #7986cb;
+  color: white;
 }
