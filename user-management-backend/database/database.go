@@ -57,11 +57,11 @@ func ConnectDB() {
 	connStr := "user=" + username + " dbname=" + dbname + " sslmode=disable"
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	if err := db.Ping(); err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	DB = db

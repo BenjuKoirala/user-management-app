@@ -3,8 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/labstack/echo/v4/middleware"
-	"log"
-	"net/http"
+	"github.com/labstack/gommon/log"
 	"os"
 	"user-management-backend/database"
 	"user-management-backend/routes"
@@ -33,7 +32,7 @@ func main() {
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{frontendUrl}, //angular service address
-		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
+		AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.DELETE},
 	}))
 
 	// Connect to the database
