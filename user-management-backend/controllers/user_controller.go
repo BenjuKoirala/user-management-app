@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/labstack/gommon/log"
 	"net/http"
 	"user-management-backend/models"
 	"user-management-backend/services"
@@ -25,9 +26,11 @@ var (
 // @Success 200 {array} models.User
 // @Router /users [get]
 func GetUsers(c echo.Context) error {
+	log.Infof("Getting user information")
 	users, err := getUsers()
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		log.Errorf("Error while obtaining user info", err.Error())
+		return c.JSON(http.StatusInternalServerError, "Can not get user details")
 	}
 	return c.JSON(http.StatusOK, users)
 }
@@ -45,6 +48,7 @@ func GetUser(c echo.Context) error {
 	id := c.Param("id")
 	user, err := getUser(id)
 	if err != nil {
+		log.Errorf("Error while obtaining user info", err.Error())
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, user)
@@ -60,11 +64,13 @@ func GetUser(c echo.Context) error {
 // @Success 201 {object} models.User
 // @Router /users [post]
 func CreateUser(c echo.Context) error {
+	log.Info("Creating user")
 	user := new(models.User)
 	if err := c.Bind(user); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 	if err := createUser(user); err != nil {
+		log.Errorf("Error while creating user info", err.Error())
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusCreated, user)
@@ -84,9 +90,11 @@ func UpdateUser(c echo.Context) error {
 	id := c.Param("id")
 	user := new(models.User)
 	if err := c.Bind(user); err != nil {
+		log.Errorf("Error while updating user info", err.Error())
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 	if err := updateUser(id, user); err != nil {
+		log.Errorf("Error while updating user info", err.Error())
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, user)
@@ -104,6 +112,7 @@ func UpdateUser(c echo.Context) error {
 func DeleteUser(c echo.Context) error {
 	id := c.Param("id")
 	if err := deleteUser(id); err != nil {
+		log.Errorf("Error while deleting user info", err.Error())
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)
