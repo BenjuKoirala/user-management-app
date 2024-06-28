@@ -5,8 +5,9 @@ import {MatButtonModule} from '@angular/material/button';
 import { CreateUserDialog } from '../dialogues/create-user.component';
 import { MatDialog } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { ErrorDialogComponent } from '../dialogues/error-dialog.component';
 
 export interface UserDetails {
   id: number,
@@ -44,7 +45,6 @@ export class HomeComponent implements OnInit {
   }
 
   getUsers(): Observable<UserDetails[]> {
-    // here
     return this.http.get<UserDetails[]>(this.baseUrl);
   }
 
@@ -52,8 +52,13 @@ export class HomeComponent implements OnInit {
     return this.http.get<UserDetails>(`${this.baseUrl}/${id}`);
   }
 
-  createUser(user :UserDetails): Observable<UserDetails> {
-    return this.http.post<UserDetails>(this.baseUrl, user)
+  createUser(user: UserDetails): Observable<UserDetails> {
+    return this.http.post<UserDetails>(this.baseUrl, user).pipe(
+      catchError(error => {
+        this.showError(error);
+        return of();
+      })
+    );
   }
 
   updateUser(user: UserDetails): Observable<UserDetails> {
@@ -121,7 +126,7 @@ export class HomeComponent implements OnInit {
         this.createUser(newUser).subscribe(createdUser => {
           console.log("Created new user", createdUser);
           this.loadUsers();
-        });
+        }, error => this.showError(error));
       }
     });
   }
@@ -129,4 +134,11 @@ export class HomeComponent implements OnInit {
   hasNoSelection() {
     this.clickedRow == undefined;
   }
+
+private showError(error: any): void {
+  console.log(error)
+  this.dialog.open(ErrorDialogComponent, {
+    data: { title: 'Error', message: error.error || 'An unexpected error occurred.' }
+  });
+}
 }

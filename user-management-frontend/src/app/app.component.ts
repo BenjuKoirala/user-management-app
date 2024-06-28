@@ -1,16 +1,16 @@
 import { Component } from '@angular/core';
 import { HomeComponent } from './home/home.component';
-import { TestComponent } from './test/test.component';
 import {MatDividerModule} from '@angular/material/divider';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [HomeComponent, TestComponent, MatDividerModule],
+  imports: [HomeComponent, MatDividerModule, CommonModule],
   template: `
     <main>
       <h1>
-        Benju Koirala Project
+        User Management System
       </h1>
       <mat-divider></mat-divider>
       <section class="content">
@@ -21,5 +21,5 @@ import {MatDividerModule} from '@angular/material/divider';
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent {
-  title = 'Benju Project';
+  title = 'User Management System';
 }
