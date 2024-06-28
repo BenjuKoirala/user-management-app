@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/labstack/gommon/log"
+	"log"
 	"os"
 	"user-management-backend/database"
 	"user-management-backend/routes"
@@ -20,7 +20,7 @@ import (
 func main() {
 	e := echo.New()
 
-	config, err := loadConfig("config/db_config.json")
+	config, err := loadConfig("config/config.json")
 	if err != nil {
 		log.Fatal("Error loading configuration:", err)
 	}
@@ -66,6 +66,5 @@ func loadConfig(filePath string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return config, nil
 }

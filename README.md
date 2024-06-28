@@ -32,7 +32,7 @@ open http://localhost:4200/
 
 ## Create database table 
 ```
-create table users (id serial primary key, name varchar (50) not null, email varchar(255) not null);
+create table users (id serial primary key, name varchar (50) not null unique, email varchar(255) not null unique);
 ```
 
 # Run backend

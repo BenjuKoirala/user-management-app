@@ -11,11 +11,8 @@ import (
 )
 
 func TestUserController(t *testing.T) {
-	// Mock services and setup Echo instance
+	// Initializing Echo
 	e := echo.New()
-	req := new(http.Request)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
 
 	t.Run("GetUsers", func(t *testing.T) {
 		// Mock GetUsers service function
@@ -27,7 +24,12 @@ func TestUserController(t *testing.T) {
 			return mockUsers, nil
 		}
 
-		// Call GetUsers controller function
+		// Creating a new HTTP request
+		req := httptest.NewRequest(http.MethodGet, "/users", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+
+		// Calling GetUsers controller function
 		if assert.NoError(t, GetUsers(c)) {
 			assert.Equal(t, http.StatusOK, rec.Code)
 
@@ -37,64 +39,41 @@ func TestUserController(t *testing.T) {
 		}
 	})
 
-	t.Run("GetUser", func(t *testing.T) {
-		// Mock GetUser service function
-		mockUser := models.User{ID: 1, Name: "John", Email: "john@example.com"}
-		getUser = func(id string) (models.User, error) {
-			return mockUser, nil
-		}
-
-		// Call GetUser controller function
-		c.SetPath("/users/:id")
-		c.SetParamNames("id")
-		c.SetParamValues("1")
-		if assert.NoError(t, GetUser(c)) {
-			assert.Equal(t, http.StatusOK, rec.Code)
-
-			// Assert response body
-			expectedBody := `{"id":1,"name":"John","email":"john@example.com"}`
-			assert.JSONEq(t, expectedBody, rec.Body.String())
-		}
-	})
-
 	t.Run("CreateUser", func(t *testing.T) {
-		// Mock CreateUser service function
-		//mockUser := models.User{ID: 1, Name: "Alice", Email: "alice@example.com"}
+		// Mocking CreateUser service function
 		createUser = func(user *models.User) error {
 			user.ID = 1 // Simulate creation of user
 			return nil
 		}
 
-		// Prepare request body
+		// Preparing request body
 		requestBody := `{"name":"Alice","email":"alice@example.com"}`
 
-		// Set request body
+		// Creating a new HTTP request
 		req := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(requestBody))
 		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 		rec := httptest.NewRecorder()
 		c := e.NewContext(req, rec)
 
-		// Call CreateUser controller function
+		// Calling CreateUser controller function and checking
 		if assert.NoError(t, CreateUser(c)) {
 			assert.Equal(t, http.StatusCreated, rec.Code)
-
-			// Assert response body
 			expectedBody := `{"id":1,"name":"Alice","email":"alice@example.com"}`
 			assert.JSONEq(t, expectedBody, rec.Body.String())
 		}
 	})
 
 	t.Run("UpdateUser", func(t *testing.T) {
-		// Mock UpdateUser service function
+		// Mocking UpdateUser service function
 		updateUser = func(id string, user *models.User) error {
-			// Simulate update of user
+			user.ID = 1
 			return nil
 		}
 
-		// Prepare request body
+		// Preparing request body
 		requestBody := `{"name":"Alice","email":"alice@example.com"}`
 
-		// Set request body
+		// Creating a new HTTP request
 		req := httptest.NewRequest(http.MethodPut, "/users/1", strings.NewReader(requestBody))
 		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 		rec := httptest.NewRecorder()
@@ -103,27 +82,29 @@ func TestUserController(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		// Call UpdateUser controller function
+		// Calling UpdateUser controller function
 		if assert.NoError(t, UpdateUser(c)) {
 			assert.Equal(t, http.StatusOK, rec.Code)
-
-			// Assert response body
 			expectedBody := `{"id":1,"name":"Alice","email":"alice@example.com"}`
 			assert.JSONEq(t, expectedBody, rec.Body.String())
 		}
 	})
 
 	t.Run("DeleteUser", func(t *testing.T) {
-		// Mock DeleteUser service function
+		// Mocking DeleteUser service function
 		deleteUser = func(id string) error {
-			// Simulate deletion of user
 			return nil
 		}
 
-		// Call DeleteUser controller function
+		// Creating a new HTTP request
+		req := httptest.NewRequest(http.MethodDelete, "/users/1", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
 		c.SetPath("/users/:id")
 		c.SetParamNames("id")
 		c.SetParamValues("1")
+
+		// Calling DeleteUser controller function
 		if assert.NoError(t, DeleteUser(c)) {
 			assert.Equal(t, http.StatusNoContent, rec.Code)
 		}

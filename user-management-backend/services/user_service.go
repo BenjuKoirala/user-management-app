@@ -1,7 +1,11 @@
 package services
 
 import (
+	"errors"
+	"github.com/jackc/pgerrcode"
 	"github.com/labstack/gommon/log"
+	"github.com/lib/pq"
+	"strconv"
 	"user-management-backend/database"
 	"user-management-backend/models"
 
@@ -33,22 +37,6 @@ func GetUsers() ([]models.User, error) {
 	return users, nil
 }
 
-func GetUser(id string) (models.User, error) {
-	var user models.User
-	query := sq.Select("*").From("users").Where(sq.Eq{"id": id})
-	sql, args, err := query.ToSql()
-	if err != nil {
-		log.Errorf("Error while obtaining user info", err.Error())
-		return user, err
-	}
-	err = database.DB.QueryRow(sql, args...).Scan(&user.ID, &user.Name, &user.Email)
-	if err != nil {
-		log.Errorf("Error while obtaining database info", err.Error())
-		return user, err
-	}
-	return user, nil
-}
-
 func CreateUser(user *models.User) error {
 	query := database.PSQL.Insert("users").Columns("name", "email").Values(user.Name, user.Email).Suffix("RETURNING id")
 	sql, args, err := query.ToSql()
@@ -58,6 +46,13 @@ func CreateUser(user *models.User) error {
 	}
 	err = database.DB.QueryRow(sql, args...).Scan(&user.ID)
 	if err != nil {
+		var pgErr *pq.Error
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == pgerrcode.UniqueViolation {
+				log.Errorf("Error while creating user info: %s", errors.New("username already exists"))
+				return errors.New("username already exists")
+			}
+		}
 		log.Errorf("Error while creating user info", err.Error())
 		return err
 	}
@@ -65,7 +60,14 @@ func CreateUser(user *models.User) error {
 }
 
 func UpdateUser(id string, user *models.User) error {
-	query := database.PSQL.Update("users").Set("name", user.Name).Set("email", user.Email).Where(sq.Eq{"id": id})
+	// Convert the id from string to int64
+	userID, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		log.Errorf("Error while converting id to int64", err.Error())
+		return err
+	}
+
+	query := database.PSQL.Update("users").Set("name", user.Name).Set("email", user.Email).Where(sq.Eq{"id": userID})
 	sql, args, err := query.ToSql()
 	if err != nil {
 		log.Errorf("Error while updating user info", err.Error())
@@ -80,16 +82,31 @@ func UpdateUser(id string, user *models.User) error {
 }
 
 func DeleteUser(id string) error {
-	query := database.PSQL.Delete("users").Where(sq.Eq{"id": id})
+	// Convert the id from string to int64
+	userID, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		log.Errorf("Error while converting id to int64", err.Error())
+		return err
+	}
+
+	query := database.PSQL.Delete("users").Where(sq.Eq{"id": userID})
 	sql, args, err := query.ToSql()
 	if err != nil {
 		log.Errorf("Error while deleting user info", err.Error())
 		return err
 	}
-	_, err = database.DB.Exec(sql, args...)
+	result, err := database.DB.Exec(sql, args...)
 	if err != nil {
 		log.Errorf("Error while deleting user info", err.Error())
 		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		log.Errorf("Error while getting rows affected", err.Error())
+		return err
+	}
+	if rowsAffected == 0 {
+		return errors.New("no rows in result set")
 	}
 	return nil
 }

@@ -3,15 +3,12 @@ package database
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"github.com/Masterminds/squirrel"
 	"log"
 	"os"
 
 	_ "github.com/lib/pq"
 )
-
-//var DB *sql.DB
 
 var (
 	DB   *sql.DB
@@ -23,24 +20,6 @@ type Config struct {
 	UserName string `json:"username"`
 	PassWord string `json:"password"`
 	DbName   string `json:"db_name"`
-}
-
-// LoadConfig reads the configuration from a JSON file
-func loadConfig(filePath string) (*Config, error) {
-	configFile, err := os.Open(filePath)
-	if err != nil {
-		return nil, err
-	}
-	defer configFile.Close()
-
-	config := &Config{}
-	jsonParser := json.NewDecoder(configFile)
-	err = jsonParser.Decode(config)
-	if err != nil {
-		return nil, err
-	}
-
-	return config, nil
 }
 
 func ConnectDB() {
@@ -65,5 +44,23 @@ func ConnectDB() {
 	}
 
 	DB = db
-	fmt.Println("Successfully connected to the database")
+	log.Println("Successfully connected to the database")
+}
+
+// LoadConfig reads the configuration from a JSON file
+func loadConfig(filePath string) (*Config, error) {
+	configFile, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer configFile.Close()
+
+	config := &Config{}
+	jsonParser := json.NewDecoder(configFile)
+	err = jsonParser.Decode(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return config, nil
 }

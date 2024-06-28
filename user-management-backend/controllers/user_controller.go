@@ -11,7 +11,6 @@ import (
 
 var (
 	getUsers   = services.GetUsers
-	getUser    = services.GetUser
 	createUser = services.CreateUser
 	updateUser = services.UpdateUser
 	deleteUser = services.DeleteUser
@@ -35,25 +34,6 @@ func GetUsers(c echo.Context) error {
 	return c.JSON(http.StatusOK, users)
 }
 
-// GetUser godoc
-// @Summary Get a user by ID
-// @Description Get details of a single user by ID
-// @Tags users
-// @Accept json
-// @Produce json
-// @Param id path int true "User ID"
-// @Success 200 {object} models.User
-// @Router /users/{id} [get]
-func GetUser(c echo.Context) error {
-	id := c.Param("id")
-	user, err := getUser(id)
-	if err != nil {
-		log.Errorf("Error while obtaining user info", err.Error())
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-	return c.JSON(http.StatusOK, user)
-}
-
 // CreateUser godoc
 // @Summary Create a new user
 // @Description Create a new user
@@ -71,7 +51,7 @@ func CreateUser(c echo.Context) error {
 	}
 	if err := createUser(user); err != nil {
 		log.Errorf("Error while creating user info", err.Error())
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 	return c.JSON(http.StatusCreated, user)
 }
